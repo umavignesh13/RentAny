@@ -1,8 +1,8 @@
-# Workspace
+# RentAny - Peer-to-Peer Rental Marketplace
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+A full-stack rental marketplace web app (like Airbnb but for products), with AI-powered features, real-time chat, payments, and an admin dashboard.
 
 ## Stack
 
@@ -10,87 +10,102 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Node.js version**: 24
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
+- **Frontend**: React + Vite + Tailwind CSS + Framer Motion + React Query
 - **API framework**: Express 5
 - **Database**: PostgreSQL + Drizzle ORM
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- **Build**: esbuild (ESM bundle)
+- **Auth**: JWT (bcryptjs + jsonwebtoken)
+- **Charts**: Recharts (admin dashboard)
 
 ## Structure
 
 ```text
 artifacts-monorepo/
-├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
-├── lib/                    # Shared libraries
-│   ├── api-spec/           # OpenAPI spec + Orval codegen config
-│   ├── api-client-react/   # Generated React Query hooks
-│   ├── api-zod/            # Generated Zod schemas from OpenAPI
-│   └── db/                 # Drizzle ORM schema + DB connection
-├── scripts/                # Utility scripts (single workspace package)
-│   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
-├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
-├── tsconfig.json           # Root TS project references
-└── package.json            # Root package with hoisted devDeps
+├── artifacts/
+│   ├── api-server/          # Express 5 REST API server
+│   │   └── src/
+│   │       ├── lib/auth.ts  # JWT auth helpers + middleware
+│   │       └── routes/      # auth, users, products, bookings, reviews, payments, messages, ai, admin
+│   └── rentany/             # React + Vite frontend
+│       └── src/
+│           ├── pages/       # home, browse, product-detail, auth, dashboard, my-bookings
+│           ├── components/  # layout, product-card, glass-card UI
+│           └── hooks/       # use-auth
+├── lib/
+│   ├── api-spec/openapi.yaml  # OpenAPI 3.1 spec (source of truth)
+│   ├── api-client-react/      # Generated React Query hooks
+│   ├── api-zod/               # Generated Zod schemas
+│   └── db/src/schema/         # Drizzle ORM models
+│       ├── users.ts
+│       ├── products.ts
+│       ├── bookings.ts
+│       ├── reviews.ts
+│       ├── transactions.ts
+│       └── messages.ts
 ```
 
-## TypeScript & Composite Projects
+## Demo Accounts
 
-Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references. This means:
+- **Owner**: alice@example.com / password123
+- **Owner**: bob@example.com / password123
+- **User**: charlie@example.com / password123
+- **Admin**: admin@rentany.com / admin123
 
-- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly. Running `tsc` inside a single package will fail if its dependencies haven't been built yet.
-- **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by esbuild/tsx/vite...etc, not `tsc`.
-- **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array. `tsc --build` uses this to determine build order and skip up-to-date packages.
+## Features
 
-## Root Scripts
+### Core
+- JWT authentication (register/login/me) with role-based access (user/owner/admin)
+- Product listings with images, categories, location, price, deposit
+- Booking system with date selection and auto price calculation
+- Review & rating system
+- Payment simulation (create intent + confirm)
+- Real-time-style messaging (conversations + messages)
 
-- `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
-- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
+### AI/ML Features
+- **Recommendation Engine**: Suggests products based on user's booking history + collaborative filtering
+- **Price Prediction**: Suggests optimal rental price based on category, location, condition
+- **Fraud Detection**: Calculates risk score for users (flags, risk levels)
+- **Popular Products**: Trending items sorted by booking count
+- **Admin Analytics**: Revenue trends, user growth, category demand charts
 
-## Packages
+### Admin Panel
+- Platform stats (total users, products, bookings, revenue)
+- User management with block/unblock
+- Product management
+- Revenue trends visualization
 
-### `artifacts/api-server` (`@workspace/api-server`)
+## API Routes
 
-Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.
+- `POST /api/auth/register` — Register
+- `POST /api/auth/login` — Login
+- `GET /api/auth/me` — Current user (protected)
+- `GET /api/products` — Browse with filters (category, location, price, search, sort, pagination)
+- `POST /api/products` — Create listing (protected)
+- `GET /api/products/:id` — Product detail
+- `GET /api/products/categories` — Category list with counts
+- `GET /api/bookings` — User bookings (protected)
+- `POST /api/bookings` — Create booking (protected)
+- `GET /api/reviews/product/:id` — Product reviews
+- `POST /api/reviews` — Create review (protected)
+- `POST /api/payments/create-intent` — Payment intent (protected)
+- `POST /api/payments/confirm` — Confirm payment (protected)
+- `GET /api/messages/conversations` — User conversations (protected)
+- `GET /api/messages/:conversationId` — Messages in conversation (protected)
+- `POST /api/messages/start` — Start conversation (protected)
+- `GET /api/ai/recommendations` — Personalized picks (protected)
+- `POST /api/ai/price-prediction` — Price suggestion (protected)
+- `GET /api/ai/fraud-score/:userId` — Fraud risk (protected)
+- `GET /api/ai/popular-products` — Trending products
+- `GET /api/admin/stats` — Platform analytics (admin)
+- `GET /api/admin/users` — All users (admin)
+- `PUT /api/admin/users/:id/block` — Block/unblock user (admin)
+- `GET /api/admin/products` — All products (admin)
+- `GET /api/admin/revenue-trends` — Revenue data (admin)
 
-- Entry: `src/index.ts` — reads `PORT`, starts Express
-- App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
-- Depends on: `@workspace/db`, `@workspace/api-zod`
-- `pnpm --filter @workspace/api-server run dev` — run the dev server
-- `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
-- Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
+## Environment Variables
 
-### `lib/db` (`@workspace/db`)
-
-Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client instance and schema models.
-
-- `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
-- `src/schema/index.ts` — barrel re-export of all models
-- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas (no models definitions exist right now)
-- `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
-- Exports: `.` (pool, db, schema), `./schema` (schema only)
-
-Production migrations are handled by Replit when publishing. In development, we just use `pnpm --filter @workspace/db run push`, and we fallback to `pnpm --filter @workspace/db run push-force`.
-
-### `lib/api-spec` (`@workspace/api-spec`)
-
-Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`). Running codegen produces output into two sibling packages:
-
-1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
-2. `lib/api-zod/src/generated/` — Zod schemas
-
-Run codegen: `pnpm --filter @workspace/api-spec run codegen`
-
-### `lib/api-zod` (`@workspace/api-zod`)
-
-Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used by `api-server` for response validation.
-
-### `lib/api-client-react` (`@workspace/api-client-react`)
-
-Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
-
-### `scripts` (`@workspace/scripts`)
-
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+- `DATABASE_URL` — PostgreSQL connection string (auto-set by Replit)
+- `JWT_SECRET` — JWT signing secret (defaults to built-in fallback; set in production)
+- `PORT` — Server port (auto-assigned)

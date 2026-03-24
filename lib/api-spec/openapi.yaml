@@ -1,22 +1,38 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: RentAny - Peer-to-Peer Rental Marketplace API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: products
+    description: Product listing operations
+  - name: bookings
+    description: Booking operations
+  - name: reviews
+    description: Review operations
+  - name: payments
+    description: Payment operations
+  - name: messages
+    description: Messaging operations
+  - name: ai
+    description: AI/ML features
+  - name: admin
+    description: Admin operations
+  - name: users
+    description: User operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,7 +40,761 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    get:
+      operationId: getUserById
+      tags: [users]
+      summary: Get user profile by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      operationId: updateUser
+      tags: [users]
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInput"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /products:
+    get:
+      operationId: getProducts
+      tags: [products]
+      summary: Get all products with optional filters
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: location
+          schema:
+            type: string
+        - in: query
+          name: minPrice
+          schema:
+            type: number
+        - in: query
+          name: maxPrice
+          schema:
+            type: number
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 12
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [price_asc, price_desc, newest, popular]
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a new product listing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductInput"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProductById
+      tags: [products]
+      summary: Get product by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDetail"
+    put:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update product listing
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductInput"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete product listing
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /products/owner/{ownerId}:
+    get:
+      operationId: getProductsByOwner
+      tags: [products]
+      summary: Get products by owner ID
+      parameters:
+        - in: path
+          name: ownerId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Owner's products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/categories:
+    get:
+      operationId: getCategories
+      tags: [products]
+      summary: Get all product categories
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /bookings:
+    get:
+      operationId: getUserBookings
+      tags: [bookings]
+      summary: Get bookings for current user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum: [renter, owner]
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BookingDetail"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a booking
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingInput"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}:
+    get:
+      operationId: getBookingById
+      tags: [bookings]
+      summary: Get booking by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingDetail"
+    put:
+      operationId: updateBookingStatus
+      tags: [bookings]
+      summary: Update booking status
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBookingStatusInput"
+      responses:
+        "200":
+          description: Booking updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /reviews:
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create a review
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewInput"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /reviews/product/{productId}:
+    get:
+      operationId: getProductReviews
+      tags: [reviews]
+      summary: Get reviews for a product
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReviewDetail"
+
+  /payments/create-intent:
+    post:
+      operationId: createPaymentIntent
+      tags: [payments]
+      summary: Create payment intent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentIntentInput"
+      responses:
+        "200":
+          description: Payment intent created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentIntentResponse"
+
+  /payments/confirm:
+    post:
+      operationId: confirmPayment
+      tags: [payments]
+      summary: Confirm payment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmPaymentInput"
+      responses:
+        "200":
+          description: Payment confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /payments/history:
+    get:
+      operationId: getTransactionHistory
+      tags: [payments]
+      summary: Get transaction history
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Transaction history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /messages/conversations:
+    get:
+      operationId: getConversations
+      tags: [messages]
+      summary: Get all conversations for user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+
+  /messages/{conversationId}:
+    get:
+      operationId: getMessages
+      tags: [messages]
+      summary: Get messages in a conversation
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageInput"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  /messages/start:
+    post:
+      operationId: startConversation
+      tags: [messages]
+      summary: Start a new conversation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartConversationInput"
+      responses:
+        "201":
+          description: Conversation started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+
+  /ai/recommendations:
+    get:
+      operationId: getRecommendations
+      tags: [ai]
+      summary: Get AI-based product recommendations
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 8
+      responses:
+        "200":
+          description: Recommended products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /ai/price-prediction:
+    post:
+      operationId: predictPrice
+      tags: [ai]
+      summary: Predict optimal rental price
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricePredictionInput"
+      responses:
+        "200":
+          description: Price prediction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricePredictionResponse"
+
+  /ai/fraud-score/{userId}:
+    get:
+      operationId: getFraudScore
+      tags: [ai]
+      summary: Get fraud score for a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Fraud score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FraudScoreResponse"
+
+  /ai/popular-products:
+    get:
+      operationId: getPopularProducts
+      tags: [ai]
+      summary: Get trending/popular products
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 6
+      responses:
+        "200":
+          description: Popular products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get platform analytics stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: getAdminUsers
+      tags: [admin]
+      summary: Get all users (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUsersResponse"
+
+  /admin/users/{id}/block:
+    put:
+      operationId: blockUser
+      tags: [admin]
+      summary: Block/unblock a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockUserInput"
+      responses:
+        "200":
+          description: User blocked/unblocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/products:
+    get:
+      operationId: getAdminProducts
+      tags: [admin]
+      summary: Get all products (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminProductsResponse"
+
+  /admin/revenue-trends:
+    get:
+      operationId: getRevenueTrends
+      tags: [admin]
+      summary: Get revenue trend data
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: period
+          schema:
+            type: string
+            enum: [week, month, year]
+            default: month
+      responses:
+        "200":
+          description: Revenue trends
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RevenueTrend"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +804,733 @@ components:
       required:
         - status
 
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    RegisterInput:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        role:
+          type: string
+          enum: [user, owner]
+          default: user
+      required:
+        - name
+        - email
+        - password
+
+    LoginInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [user, owner, admin]
+        avatar:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        rating:
+          type: number
+        trustScore:
+          type: number
+        isBlocked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - role
+        - rating
+        - trustScore
+        - isBlocked
+        - createdAt
+
+    UpdateUserInput:
+      type: object
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        location:
+          type: string
+        phone:
+          type: string
+        avatar:
+          type: string
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        pricePerDay:
+          type: number
+        deposit:
+          type: number
+        location:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        ownerId:
+          type: integer
+        ownerName:
+          type: string
+        ownerAvatar:
+          type: string
+          nullable: true
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        isAvailable:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - description
+        - category
+        - pricePerDay
+        - deposit
+        - location
+        - images
+        - ownerId
+        - ownerName
+        - rating
+        - reviewCount
+        - isAvailable
+        - createdAt
+
+    ProductDetail:
+      allOf:
+        - $ref: "#/components/schemas/Product"
+        - type: object
+          properties:
+            owner:
+              $ref: "#/components/schemas/User"
+            reviews:
+              type: array
+              items:
+                $ref: "#/components/schemas/ReviewDetail"
+            unavailableDates:
+              type: array
+              items:
+                type: string
+
+    ProductListResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - products
+        - total
+        - page
+        - limit
+        - totalPages
+
+    CreateProductInput:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        pricePerDay:
+          type: number
+        deposit:
+          type: number
+        location:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+      required:
+        - title
+        - description
+        - category
+        - pricePerDay
+        - deposit
+        - location
+
+    UpdateProductInput:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        pricePerDay:
+          type: number
+        deposit:
+          type: number
+        location:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        isAvailable:
+          type: boolean
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+        count:
+          type: integer
+      required:
+        - id
+        - name
+        - icon
+        - count
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        productId:
+          type: integer
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        totalDays:
+          type: integer
+        totalPrice:
+          type: number
+        depositAmount:
+          type: number
+        status:
+          type: string
+          enum: [pending, confirmed, active, completed, cancelled]
+        paymentStatus:
+          type: string
+          enum: [pending, paid, refunded, failed]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - productId
+        - startDate
+        - endDate
+        - totalDays
+        - totalPrice
+        - depositAmount
+        - status
+        - paymentStatus
+        - createdAt
+
+    BookingDetail:
+      allOf:
+        - $ref: "#/components/schemas/Booking"
+        - type: object
+          properties:
+            product:
+              $ref: "#/components/schemas/Product"
+            user:
+              $ref: "#/components/schemas/User"
+
+    CreateBookingInput:
+      type: object
+      properties:
+        productId:
+          type: integer
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+      required:
+        - productId
+        - startDate
+        - endDate
+
+    UpdateBookingStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [confirmed, cancelled, completed]
+      required:
+        - status
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        productId:
+          type: integer
+        bookingId:
+          type: integer
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - productId
+        - bookingId
+        - rating
+        - comment
+        - createdAt
+
+    ReviewDetail:
+      allOf:
+        - $ref: "#/components/schemas/Review"
+        - type: object
+          properties:
+            userName:
+              type: string
+            userAvatar:
+              type: string
+              nullable: true
+
+    CreateReviewInput:
+      type: object
+      properties:
+        productId:
+          type: integer
+        bookingId:
+          type: integer
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+      required:
+        - productId
+        - bookingId
+        - rating
+        - comment
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        bookingId:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [pending, success, failed, refunded]
+        paymentMethod:
+          type: string
+        transactionRef:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - bookingId
+        - userId
+        - amount
+        - status
+        - transactionRef
+        - createdAt
+
+    CreatePaymentIntentInput:
+      type: object
+      properties:
+        bookingId:
+          type: integer
+        amount:
+          type: number
+      required:
+        - bookingId
+        - amount
+
+    PaymentIntentResponse:
+      type: object
+      properties:
+        clientSecret:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+      required:
+        - clientSecret
+        - amount
+        - currency
+
+    ConfirmPaymentInput:
+      type: object
+      properties:
+        bookingId:
+          type: integer
+        paymentIntentId:
+          type: string
+      required:
+        - bookingId
+        - paymentIntentId
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        participantId:
+          type: integer
+        participantName:
+          type: string
+        participantAvatar:
+          type: string
+          nullable: true
+        productId:
+          type: integer
+          nullable: true
+        productTitle:
+          type: string
+          nullable: true
+        lastMessage:
+          type: string
+          nullable: true
+        lastMessageAt:
+          type: string
+          format: date-time
+          nullable: true
+        unreadCount:
+          type: integer
+      required:
+        - id
+        - participantId
+        - participantName
+        - unreadCount
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        senderId:
+          type: integer
+        senderName:
+          type: string
+        senderAvatar:
+          type: string
+          nullable: true
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        isRead:
+          type: boolean
+      required:
+        - id
+        - conversationId
+        - senderId
+        - senderName
+        - content
+        - createdAt
+        - isRead
+
+    SendMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    StartConversationInput:
+      type: object
+      properties:
+        participantId:
+          type: integer
+        productId:
+          type: integer
+        initialMessage:
+          type: string
+      required:
+        - participantId
+        - initialMessage
+
+    PricePredictionInput:
+      type: object
+      properties:
+        category:
+          type: string
+        location:
+          type: string
+        condition:
+          type: string
+          enum: [new, like_new, good, fair]
+        description:
+          type: string
+      required:
+        - category
+        - location
+
+    PricePredictionResponse:
+      type: object
+      properties:
+        suggestedPrice:
+          type: number
+        minPrice:
+          type: number
+        maxPrice:
+          type: number
+        confidence:
+          type: number
+        reasoning:
+          type: string
+      required:
+        - suggestedPrice
+        - minPrice
+        - maxPrice
+        - confidence
+        - reasoning
+
+    FraudScoreResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+        score:
+          type: number
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+        flags:
+          type: array
+          items:
+            type: string
+      required:
+        - userId
+        - score
+        - riskLevel
+        - flags
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalProducts:
+          type: integer
+        totalBookings:
+          type: integer
+        totalRevenue:
+          type: number
+        activeBookings:
+          type: integer
+        pendingBookings:
+          type: integer
+        newUsersThisMonth:
+          type: integer
+        revenueThisMonth:
+          type: number
+        topCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryStat"
+        userGrowth:
+          type: array
+          items:
+            $ref: "#/components/schemas/GrowthPoint"
+      required:
+        - totalUsers
+        - totalProducts
+        - totalBookings
+        - totalRevenue
+        - activeBookings
+        - pendingBookings
+        - newUsersThisMonth
+        - revenueThisMonth
+        - topCategories
+        - userGrowth
+
+    CategoryStat:
+      type: object
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
+        revenue:
+          type: number
+      required:
+        - category
+        - count
+        - revenue
+
+    GrowthPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        count:
+          type: integer
+      required:
+        - date
+        - count
+
+    RevenueTrend:
+      type: object
+      properties:
+        period:
+          type: string
+        revenue:
+          type: number
+        bookings:
+          type: integer
+      required:
+        - period
+        - revenue
+        - bookings
+
+    AdminUsersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - users
+        - total
+        - page
+        - totalPages
+
+    AdminProductsResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - products
+        - total
+        - page
+        - totalPages
+
+    BlockUserInput:
+      type: object
+      properties:
+        isBlocked:
+          type: boolean
+      required:
+        - isBlocked

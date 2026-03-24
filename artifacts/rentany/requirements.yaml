@@ -1,0 +1,18 @@
+packages:
+  "framer-motion": "For smooth page transitions and micro-interactions"
+  "recharts": "For admin dashboard analytics charts"
+  "date-fns": "For formatting booking dates and chat timestamps"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility for merging tailwind classes without style conflicts"
+
+images:
+  - path: "artifacts/rentany/public/images/hero-bg.png"
+    description: "Elegant abstract glassmorphism gradient background with soft floating fluid shapes in deep indigo, vibrant blue, and soft purple tones, modern SaaS aesthetic, 8k resolution"
+    aspect_ratio: "16:9"
+  - path: "artifacts/rentany/public/images/logo.png"
+    description: "Minimalist modern tech logo mark combining a box package shape with an infinity loop, gradient indigo and blue colors, transparent background, clean vector style"
+    aspect_ratio: "1:1"
+
+notes:
+  - using @workspace/api-client-react for all API calls
+  - JWT auth token stored in localStorage and passed via request options to generated hooks

@@ -1,0 +1,229 @@
+I want to build a production-level full stack web application called RentAny, a peer-to-peer rental marketplace similar to Airbnb but for products.
+
+Project Goal:
+Build a scalable rental platform where users can rent items from other users, list their own items, make payments, chat, and get AI-based recommendations.
+
+Tech Stack Requirements:
+
+Frontend:
+React.js
+Tailwind CSS
+Redux Toolkit
+Axios
+Framer Motion animations
+
+Backend:
+Node.js
+Express.js
+JWT Authentication
+REST API
+
+Database:
+MongoDB
+
+Data Science Features (IMPORTANT):
+Add AI/ML related features because this is a Data Science student project:
+- Recommendation system (suggest products based on search history)
+- Price prediction model (suggest optimal rental price)
+- Fraud detection (detect suspicious users)
+- Demand analytics dashboard
+- Popular product prediction
+
+Extra Integrations:
+Cloudinary (image upload)
+Razorpay or Stripe (payment demo)
+Google Maps API (location based search)
+Socket.io (real time chat)
+Nodemailer (email notifications)
+
+Core Modules:
+
+Authentication System:
+User signup/login
+JWT authentication
+Password hashing
+Role based access (User / Owner / Admin)
+
+Product Module:
+Add product
+Edit product
+Delete product
+Upload multiple images
+Category filtering
+Location filtering
+Availability calendar
+
+Booking Module:
+Book product
+Select dates
+Auto price calculation
+Security deposit handling
+Booking status tracking
+
+Payment Module:
+Payment gateway integration
+Payment success/failure handling
+Transaction history
+
+Review System:
+Rating system
+User feedback
+Trust score calculation
+
+Chat System:
+Real time chat between renter and owner
+Booking related conversations
+
+AI Features:
+Recommendation Engine:
+Suggest products using:
+- Collaborative filtering
+- Content based filtering
+
+Price Suggestion:
+Suggest rental price based on:
+- Category
+- Demand
+- Location
+- Previous rentals
+
+Fraud Detection:
+Detect fake users using:
+- Multiple cancellations
+- Fake reviews
+- Suspicious booking pattern
+
+Analytics Dashboard:
+Show:
+Most rented items
+Revenue trends
+Category demand
+User growth charts
+
+Admin Panel:
+Manage users
+Manage products
+View reports
+Block users
+Analytics dashboard
+
+Pages Required:
+
+Public Pages:
+Home
+Browse Products
+Product Details
+Search Results
+
+User Pages:
+Login/Register
+Dashboard
+My Bookings
+My Listings
+Add Product
+Profile
+Messages
+
+Admin Pages:
+Admin dashboard
+User management
+Listing management
+Reports
+
+UI Requirements:
+Modern SaaS style UI
+Glassmorphism cards
+Soft shadows
+Professional color palette
+Mobile responsive
+Loading skeletons
+Toast notifications
+
+Database Collections:
+
+Users:
+name
+email
+password
+role
+rating
+trust_score
+created_at
+
+Products:
+title
+description
+category
+price_per_day
+deposit
+location
+images
+owner_id
+availability
+
+Bookings:
+user_id
+product_id
+start_date
+end_date
+total_price
+status
+payment_status
+
+Reviews:
+user_id
+product_id
+rating
+comment
+
+Transactions:
+booking_id
+amount
+status
+
+AI Tables:
+user_behavior
+product_popularity
+price_predictions
+
+API Routes Required:
+
+Auth routes
+Product routes
+Booking routes
+Review routes
+Payment routes
+Admin routes
+Recommendation routes
+
+Security Features:
+JWT authentication
+Input validation
+Rate limiting
+XSS protection
+Mongo sanitization
+
+Deliverables I want:
+
+1 Complete folder structure
+2 Frontend code
+3 Backend code
+4 Database models
+5 API routes
+6 AI model implementation (Python if needed)
+7 Setup instructions
+8 Environment variables guide
+9 Deployment guide (Render / Vercel)
+10 README file
+
+Make code:
+Clean
+Modular
+Industry standard
+Easy to understand
+Proper MVC structure
+
+Also suggest:
+Future improvements
+Scalability ideas
+How to present this as a final year project

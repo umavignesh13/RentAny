@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { GlassCard, GlassCardContent } from "@/components/ui/glass-card";
-import { Package, CalendarCheck, Star, Shield, ArrowRight, Wallet } from "lucide-react";
+import { Package, CalendarCheck, Star, Shield, ArrowRight, Wallet, MessageSquare } from "lucide-react";
 import { useGetUserBookings } from "@workspace/api-client-react";
 
 export default function Dashboard() {
